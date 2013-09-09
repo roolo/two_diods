@@ -2,13 +2,18 @@
 
 int recvLED = 13;
 int recvPin = 11;
-int diodeOne = 2;
-int diodeTwo = 3;
+int diodeOne = 9;
+int diodeTwo = 10;
 
 IRrecv irReciver(recvPin);
 decode_results results;
 
 unsigned long lastTime = 0;
+int brightness = 255;
+int brightnessStep = 30;
+
+int diodeOneValue = 0;
+int diodeTwoValue = 0;
   
 void setup()
 {
@@ -22,8 +27,8 @@ void setup()
   pinMode(diodeOne, OUTPUT);
   pinMode(diodeTwo, OUTPUT);
   
-  digitalWrite(diodeOne, HIGH);
-  digitalWrite(diodeTwo, HIGH);
+  diodeOneValue = brightness;
+  diodeTwoValue = brightness;
 }
 
 void loop()
@@ -41,29 +46,56 @@ void loop()
       
       // Output the decoded hash value to th serial monitor. This is for debugging purposes only.
       Serial.println(recv_value, HEX);
-      Serial.println(recv_value);
-
+      
+      // Right
       if(recv_value == 0xFD08F7 || recv_value == 0x77E1E033) {
         lastTime = millis(); // Start power saving delay timer
-        digitalWrite(diodeOne, HIGH);
-        digitalWrite(diodeTwo, LOW);
+        diodeOneValue = brightness;
+        diodeTwoValue = LOW;
       }
       
+      // Left
       if(recv_value == 0xFD8877 || recv_value == 0x77E11033) {
         lastTime = millis(); // Start power saving delay timer
-        digitalWrite(diodeTwo, HIGH);
-        digitalWrite(diodeOne, LOW);
+        diodeTwoValue = brightness;
+        diodeOneValue = LOW;
       }
       
+      // Center
       if(recv_value == 0x77E12033) {
         lastTime = millis(); // Start power saving delay timer
-        digitalWrite(diodeOne, HIGH);
-        digitalWrite(diodeTwo, HIGH);
+        diodeOneValue = brightness;
+        diodeTwoValue = brightness;
       }
       
-            
-            
-            
+      // Up and Down
+      if(recv_value == 0x77E1D033 || recv_value == 0x77E1B033) {
+        if(recv_value == 0x77E1D033) {
+          // Up
+          brightness += brightnessStep;
+        } else if(recv_value == 0x77E1B033) {
+          // Down
+          brightness -= brightnessStep;
+        }
+        
+        lastTime = millis(); // Start power saving delay timer
+        diodeOneValue = brightness;
+        diodeTwoValue = brightness;
+        
+      }
+      
+      // Keep brightness between 0 and 255
+      if (brightness > 255) {
+        brightness = 0; 
+      } else if (brightness < 0) {
+        brightness = 255; 
+      }
+      
+      analogWrite(diodeOne, diodeOneValue);
+      analogWrite(diodeTwo, diodeTwoValue);
+      
+      Serial.println(brightness);
+      
     }
     irReciver.resume(); // Read the next value
   }
