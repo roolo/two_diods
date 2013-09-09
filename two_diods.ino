@@ -43,17 +43,25 @@ void loop()
       Serial.println(recv_value, HEX);
       Serial.println(recv_value);
 
-      if(recv_value == 0xFD08F7) {
+      if(recv_value == 0xFD08F7 || recv_value == 0x77E1E033) {
         lastTime = millis(); // Start power saving delay timer
         digitalWrite(diodeOne, HIGH);
         digitalWrite(diodeTwo, LOW);
       }
       
-      if(recv_value == 0xFD8877) {
+      if(recv_value == 0xFD8877 || recv_value == 0x77E11033) {
         lastTime = millis(); // Start power saving delay timer
         digitalWrite(diodeTwo, HIGH);
         digitalWrite(diodeOne, LOW);
       }
+      
+      if(recv_value == 0x77E12033) {
+        lastTime = millis(); // Start power saving delay timer
+        digitalWrite(diodeOne, HIGH);
+        digitalWrite(diodeTwo, HIGH);
+      }
+      
+            
             
             
     }
